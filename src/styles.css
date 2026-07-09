@@ -522,6 +522,7 @@ a { color: var(--navy-700); text-decoration: none; }
   border-radius: 10px;
   white-space: nowrap;
   opacity: 0;
+  transform-origin: 50% 100%;
   transition: opacity 0.25s var(--ease-out), transform 0.25s var(--ease-out);
 }
 
@@ -536,6 +537,20 @@ a { color: var(--navy-700); text-decoration: none; }
 }
 
 .sg-bubble.visible { opacity: 1; transform: translateX(-50%) translateY(0) scale(var(--inv, 1)); }
+
+/* Flipped variant so the bubble never runs off the top of the viewport */
+.sg-bubble.below {
+  bottom: auto;
+  top: calc(100% + 10px);
+  transform-origin: 50% 0%;
+}
+
+.sg-bubble.below::after {
+  top: auto;
+  bottom: 100%;
+  border-top-color: transparent;
+  border-bottom-color: var(--navy-900);
+}
 
 /* ============ Hero atmosphere ============ */
 .hero { overflow: hidden; }

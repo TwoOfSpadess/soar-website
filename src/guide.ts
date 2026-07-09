@@ -12,7 +12,8 @@ export interface Poi {
 
 const BASE_W = 64;
 const BASE_H = 57;
-const FOLLOW = 0.095; // lerp factor per frame — higher when far, so it "zips"
+const FOLLOW = 0.06; // lerp factor per frame
+const MAX_STEP = 11; // px per frame — caps cruise speed so long flights glide like a paper plane
 const ARRIVE_DIST = 13;
 
 const GUIDE_SVG = `
@@ -133,11 +134,18 @@ export class SoarGuide {
     const dx = t.x - this.x;
     const dy = t.y - this.y;
     const dist = Math.hypot(dx, dy);
-    // Far targets get an extra kick so the guide zips rather than drifts.
-    const k = FOLLOW * (dist > 420 ? 1.9 : dist > 160 ? 1.35 : 1);
-    this.x += dx * k;
-    this.y += dy * k;
-    this.scale += (t.scale - this.scale) * 0.11;
+    // Ease toward the target, but cap per-frame travel so long flights become
+    // a graceful constant-speed glide instead of a lunge.
+    let stepX = dx * FOLLOW;
+    let stepY = dy * FOLLOW;
+    const stepLen = Math.hypot(stepX, stepY);
+    if (stepLen > MAX_STEP) {
+      stepX = (stepX / stepLen) * MAX_STEP;
+      stepY = (stepY / stepLen) * MAX_STEP;
+    }
+    this.x += stepX;
+    this.y += stepY;
+    this.scale += (t.scale - this.scale) * 0.09;
 
     // Land exactly on the mark instead of asymptotically hovering beside it.
     if (dist < 0.5) {
@@ -169,14 +177,14 @@ export class SoarGuide {
     const h = BASE_H;
     let x: number;
     let y = r.top + r.height / 2 - h / 2;
-    if (poi.side === 'left') x = r.left - w - 18;
+    if (poi.side === 'left') x = r.left - w - 30;
     else if (poi.side === 'top') {
       x = r.left + r.width / 2 - w / 2;
-      y = r.top - h - 16;
-    } else x = r.right + 18;
-    // Keep the little guy on screen.
-    x = Math.min(Math.max(x, 8), window.innerWidth - w - 8);
-    y = Math.min(Math.max(y, 60), window.innerHeight - h - 12);
+      y = r.top - h - 26;
+    } else x = r.right + 30;
+    // Keep the little guy on screen, clear of the fixed header, and off the text.
+    x = Math.min(Math.max(x, 10), window.innerWidth - w - 10);
+    y = Math.min(Math.max(y, 74), window.innerHeight - h - 14);
     return { x, y, scale: 1 };
   }
 
@@ -185,16 +193,27 @@ export class SoarGuide {
     // Speech bubble stays reading-size no matter how big the guide is scaled.
     this.bubble.style.setProperty('--inv', String(1 / this.scale));
 
-    // Fly nose-first: point the arrow along its direction of travel, then
-    // ease back upright as it slows into a landing.
+    // Nose-first in flight; once landed, aim at what he's presenting
+    // (upright only when docked as the wordmark's A).
     const speed = Math.hypot(vx, vy);
-    const flying = speed > 2.8 && !this.activePoi?.isDock;
-    const targetAngle = flying ? (Math.atan2(vx, -vy) * 180) / Math.PI : 0;
+    const poi = this.activePoi;
+    const flying = speed > 2.5 && !poi?.isDock;
+    let targetAngle = 0;
+    if (flying) {
+      targetAngle = (Math.atan2(vx, -vy) * 180) / Math.PI;
+    } else if (poi && !poi.isDock) {
+      const r = poi.el.getBoundingClientRect();
+      const ax = r.left + r.width / 2 - (this.x + (BASE_W * this.scale) / 2);
+      const ay = r.top + r.height / 2 - (this.y + (BASE_H * this.scale) / 2);
+      targetAngle = (Math.atan2(ax, -ay) * 180) / Math.PI;
+    }
     const delta = ((targetAngle - this.angle + 540) % 360) - 180;
-    this.angle += delta * (flying ? 0.22 : 0.14);
-    if (!flying && Math.abs(this.angle) < 0.2) this.angle = 0;
-    const stretch = Math.min(speed * 0.007, 0.18);
+    this.angle += delta * (flying ? 0.12 : 0.08);
+    const stretch = Math.min(speed * 0.007, 0.14);
     this.motion.style.transform = `rotate(${this.angle}deg) scale(${1 - stretch}, ${1 + stretch})`;
+
+    // Keep the speech bubble on-screen: flip it underneath when he's up top.
+    this.bubble.classList.toggle('below', this.y < 130);
 
     // Eyes: look where you're going; when still, follow the cursor.
     const cx = this.x + (BASE_W * this.scale) / 2;

@@ -57,7 +57,12 @@ export class SoarGuide {
   private lastX = 0;
   private lastY = 0;
   private angle = 0;
+  private parkedFlag = false;
+  private parkSay: string | null = null;
   private reduced: boolean;
+
+  /** Set by the chat layer — invoked when the parked guide is clicked. */
+  onParkedClick?: () => void;
 
   constructor(reduced: boolean) {
     this.reduced = reduced;
@@ -78,8 +83,11 @@ export class SoarGuide {
       this.mouseY = e.clientY;
     });
 
-    // A friendly easter egg: he likes being clicked.
-    this.root.addEventListener('click', () => this.quip());
+    // Parked: clicking opens the chat. On tour: a friendly easter egg.
+    this.root.addEventListener('click', () => {
+      if (this.parkedFlag && this.onParkedClick) this.onParkedClick();
+      else this.quip();
+    });
 
     if (!this.reduced) this.scheduleBlink();
   }
@@ -118,10 +126,42 @@ export class SoarGuide {
     window.setTimeout(() => this.say('Follow me!'), 1500);
   }
 
+  /** End of the tour: glide to the bottom-right corner and become the concierge. */
+  park(message: string) {
+    if (this.parkedFlag) return;
+    this.parkedFlag = true;
+    this.parkSay = message;
+    this.pendingArrival = true;
+    this.hideBubble();
+  }
+
+  unpark() {
+    this.parkedFlag = false;
+    this.parkSay = null;
+    this.hideBubble();
+  }
+
+  get isParked(): boolean {
+    return this.parkedFlag;
+  }
+
+  /** Small acknowledgment gesture while answering chat messages. */
+  react() {
+    this.pose(Math.random() < 0.5 ? 'nod' : 'bounce');
+  }
+
+  private parkTarget(): { x: number; y: number; scale: number } {
+    return {
+      x: window.innerWidth - BASE_W - 26,
+      y: window.innerHeight - BASE_H - 24,
+      scale: 1,
+    };
+  }
+
   tick() {
     const poi = this.activePoi;
-    if (!poi) return;
-    const t = this.targetFor(poi);
+    if (!poi && !this.parkedFlag) return;
+    const t = this.parkedFlag ? this.parkTarget() : this.targetFor(poi!);
 
     if (this.reduced) {
       this.x = t.x;
@@ -162,8 +202,13 @@ export class SoarGuide {
 
     if (this.pendingArrival && dist < ARRIVE_DIST) {
       this.pendingArrival = false;
-      this.pose(poi.pose);
-      if (poi.say) this.say(poi.say);
+      if (this.parkedFlag) {
+        this.pose('cheer');
+        if (this.parkSay) this.say(this.parkSay, 7000);
+      } else if (poi) {
+        this.pose(poi.pose);
+        if (poi.say) this.say(poi.say);
+      }
     }
   }
 
@@ -197,10 +242,12 @@ export class SoarGuide {
     // (upright only when docked as the wordmark's A).
     const speed = Math.hypot(vx, vy);
     const poi = this.activePoi;
-    const flying = speed > 2.5 && !poi?.isDock;
+    const flying = speed > 2.5 && (this.parkedFlag || !poi?.isDock);
     let targetAngle = 0;
     if (flying) {
       targetAngle = (Math.atan2(vx, -vy) * 180) / Math.PI;
+    } else if (this.parkedFlag) {
+      targetAngle = 0; // upright and approachable in the corner
     } else if (poi && !poi.isDock) {
       const r = poi.el.getBoundingClientRect();
       const ax = r.left + r.width / 2 - (this.x + (BASE_W * this.scale) / 2);
@@ -262,11 +309,11 @@ export class SoarGuide {
     }
   }
 
-  private say(text: string) {
+  private say(text: string, duration = 2600) {
     this.bubble.textContent = text;
     this.bubble.classList.add('visible');
     window.clearTimeout(this.bubbleTimer);
-    this.bubbleTimer = window.setTimeout(() => this.hideBubble(), 2600);
+    this.bubbleTimer = window.setTimeout(() => this.hideBubble(), duration);
   }
 
   private hideBubble() {

@@ -1,5 +1,6 @@
 import '@fontsource-variable/inter';
 import './styles.css';
+import { initChat } from './chat';
 import { initDemo } from './demo';
 import { SoarGuide } from './guide';
 import type { Poi, Pose } from './guide';
@@ -69,11 +70,44 @@ let active: Poi = pickPoi(null);
 guide.jumpTo(active);
 guide.enter();
 
+/* ---- Concierge mode ---- */
+const chat = initChat(guide);
+guide.onParkedClick = () => chat.toggle();
+
+// Tour complete = visitor reached the bottom, then headed back up.
+let touredToBottom = false;
+let deepestScroll = 0;
+window.addEventListener(
+  'scroll',
+  () => {
+    if (guide.isParked) return;
+    const bottom = window.scrollY + window.innerHeight;
+    if (bottom > document.documentElement.scrollHeight - 140) touredToBottom = true;
+    if (touredToBottom) {
+      deepestScroll = Math.max(deepestScroll, window.scrollY);
+      if (deepestScroll - window.scrollY > 220) {
+        guide.park("That's the tour! Give me a click if you have questions — happy to help.");
+      }
+    }
+  },
+  { passive: true },
+);
+
+window.addEventListener('soar:resume', () => {
+  touredToBottom = false;
+  deepestScroll = 0;
+  guide.unpark();
+  active = pickPoi(null);
+  guide.setPoi(active);
+});
+
 function frame() {
-  const next = pickPoi(active);
-  if (next !== active) {
-    active = next;
-    guide.setPoi(active);
+  if (!guide.isParked) {
+    const next = pickPoi(active);
+    if (next !== active) {
+      active = next;
+      guide.setPoi(active);
+    }
   }
   guide.tick();
   requestAnimationFrame(frame);

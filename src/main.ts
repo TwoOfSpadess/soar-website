@@ -1,7 +1,10 @@
 import '@fontsource-variable/inter';
 import './styles.css';
+import { initDemo } from './demo';
 import { SoarGuide } from './guide';
 import type { Poi, Pose } from './guide';
+
+initDemo();
 
 const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
@@ -35,16 +38,9 @@ const pois: Poi[] = [...document.querySelectorAll<HTMLElement>('[data-soar-poi]'
   isDock: el.dataset.soarPoi === 'dock',
 }));
 
-const guide = new SoarGuide(reduced);
-const dock = pois.find((p) => p.isDock) ?? pois[0];
-guide.jumpTo(dock);
-guide.enter();
-
 /** The poi whose center sits nearest the viewport's focus line wins.
     A switch margin keeps the guide from flapping between neighbors. */
-let active: Poi = dock;
-
-function pickPoi(): Poi {
+function pickPoi(current: Poi | null): Poi {
   const focusY = window.innerHeight * 0.44;
   let best: Poi | null = null;
   let bestDist = Infinity;
@@ -57,18 +53,24 @@ function pickPoi(): Poi {
       best = poi;
     }
   }
-  if (!best) return active;
-  if (best !== active) {
-    const currentRect = active.el.getBoundingClientRect();
+  if (!best) return current ?? pois[0];
+  if (current && best !== current) {
+    const currentRect = current.el.getBoundingClientRect();
     const currentDist = Math.abs(currentRect.top + currentRect.height / 2 - focusY);
     const onScreen = currentRect.bottom > -40 && currentRect.top < window.innerHeight + 40;
-    if (onScreen && currentDist - bestDist < 48) return active; // not decisively better
+    if (onScreen && currentDist - bestDist < 48) return current; // not decisively better
   }
   return best;
 }
 
+const guide = new SoarGuide(reduced);
+// Browsers restore scroll position on reload — start at whatever is in view.
+let active: Poi = pickPoi(null);
+guide.jumpTo(active);
+guide.enter();
+
 function frame() {
-  const next = pickPoi();
+  const next = pickPoi(active);
   if (next !== active) {
     active = next;
     guide.setPoi(active);

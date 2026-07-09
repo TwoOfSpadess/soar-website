@@ -55,7 +55,7 @@ export class SoarGuide {
   private mouseY = 0;
   private lastX = 0;
   private lastY = 0;
-  private entering = false;
+  private angle = 0;
   private reduced: boolean;
 
   constructor(reduced: boolean) {
@@ -77,7 +77,17 @@ export class SoarGuide {
       this.mouseY = e.clientY;
     });
 
+    // A friendly easter egg: he likes being clicked.
+    this.root.addEventListener('click', () => this.quip());
+
     if (!this.reduced) this.scheduleBlink();
+  }
+
+  private quip() {
+    if (this.reduced) return;
+    const lines = ['Wheee!', 'Up and to the right!', 'Onward!', 'Mind the SLA!', 'That tickles.'];
+    this.say(lines[Math.floor(Math.random() * lines.length)]);
+    this.pose(Math.random() < 0.5 ? 'cheer' : 'spin');
   }
 
   /** Snap instantly (used on init so the guide starts life docked in the wordmark). */
@@ -97,30 +107,19 @@ export class SoarGuide {
     this.hideBubble();
   }
 
-  /** Playful entrance: drop into the current (dock) position from above. */
+  /** Playful entrance: start above the viewport and swoop into position via
+      the normal follow physics (nose-down dive, flare upright to land). */
   enter() {
     if (this.reduced) return;
-    const fromY = this.y;
-    this.y = -BASE_H * this.scale - 40;
-    this.entering = true;
-    animate(this, {
-      y: fromY,
-      duration: 900,
-      ease: 'outBounce',
-      onComplete: () => {
-        this.entering = false;
-        this.pose('dock');
-      },
-    });
+    this.y = -BASE_H * this.scale - 60;
+    this.lastY = this.y;
+    this.pendingArrival = true;
+    window.setTimeout(() => this.say('Follow me!'), 1500);
   }
 
   tick() {
     const poi = this.activePoi;
     if (!poi) return;
-    if (this.entering) {
-      this.render(0, 0);
-      return;
-    }
     const t = this.targetFor(poi);
 
     if (this.reduced) {
@@ -139,6 +138,13 @@ export class SoarGuide {
     this.x += dx * k;
     this.y += dy * k;
     this.scale += (t.scale - this.scale) * 0.11;
+
+    // Land exactly on the mark instead of asymptotically hovering beside it.
+    if (dist < 0.5) {
+      this.x = t.x;
+      this.y = t.y;
+    }
+    if (Math.abs(t.scale - this.scale) < 0.002) this.scale = t.scale;
 
     const vx = this.x - this.lastX;
     const vy = this.y - this.lastY;
@@ -176,12 +182,19 @@ export class SoarGuide {
 
   private render(vx: number, vy: number) {
     this.root.style.transform = `translate(${this.x}px, ${this.y}px) scale(${this.scale})`;
+    // Speech bubble stays reading-size no matter how big the guide is scaled.
+    this.bubble.style.setProperty('--inv', String(1 / this.scale));
 
-    // Swoop: tilt into the direction of travel, stretch with speed.
+    // Fly nose-first: point the arrow along its direction of travel, then
+    // ease back upright as it slows into a landing.
     const speed = Math.hypot(vx, vy);
-    const tilt = Math.max(-16, Math.min(16, vx * 0.55));
-    const stretch = Math.min(speed * 0.006, 0.16);
-    this.motion.style.transform = `rotate(${tilt}deg) scale(${1 - stretch}, ${1 + stretch})`;
+    const flying = speed > 2.8 && !this.activePoi?.isDock;
+    const targetAngle = flying ? (Math.atan2(vx, -vy) * 180) / Math.PI : 0;
+    const delta = ((targetAngle - this.angle + 540) % 360) - 180;
+    this.angle += delta * (flying ? 0.22 : 0.14);
+    if (!flying && Math.abs(this.angle) < 0.2) this.angle = 0;
+    const stretch = Math.min(speed * 0.007, 0.18);
+    this.motion.style.transform = `rotate(${this.angle}deg) scale(${1 - stretch}, ${1 + stretch})`;
 
     // Eyes: look where you're going; when still, follow the cursor.
     const cx = this.x + (BASE_W * this.scale) / 2;

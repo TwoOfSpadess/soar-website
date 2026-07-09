@@ -30,6 +30,7 @@
       </a>
       <nav class="head-nav" aria-label="Site">
         <a href="#product">Product</a>
+        <a href="#demo">Try it</a>
         <a href="#features">Features</a>
         <a href="#connect">Integrations</a>
         <a class="btn btn-primary" href="mailto:hello@soar-crm.com?subject=SOAR%20early%20access">Get early access</a>
@@ -39,6 +40,8 @@
     <main id="top">
       <!-- ============ HERO ============ -->
       <section class="hero">
+        <div class="hero-blob b1" aria-hidden="true"></div>
+        <div class="hero-blob b2" aria-hidden="true"></div>
         <div class="hero-inner">
           <h1 class="hero-word" aria-label="SOAR">
             <span aria-hidden="true">SO</span><span
@@ -55,7 +58,13 @@
           </p>
           <div class="hero-ctas" data-reveal>
             <a class="btn btn-primary btn-lg" href="mailto:hello@soar-crm.com?subject=SOAR%20early%20access">Get early access</a>
-            <a class="btn btn-ghost btn-lg" href="#product">See the product</a>
+            <a class="btn btn-ghost btn-lg" href="#demo">Try the demo</a>
+          </div>
+          <div class="hero-strip" data-reveal>
+            <span><b>27</b> widgets</span><i>·</i>
+            <span><b>4</b> departments</span><i>·</i>
+            <span><b>1</b> workspace</span><i>·</i>
+            <span><b>0</b> compromises</span>
           </div>
         </div>
         <div class="scroll-hint" aria-hidden="true">scroll</div>
@@ -105,6 +114,33 @@
               <div class="mock-dropzone"></div>
             </div>
           </div>
+        </div>
+      </section>
+
+      <!-- ============ DEMO ============ -->
+      <section class="section demo-section" id="demo">
+        <p class="kicker centered" data-reveal>Try it</p>
+        <h2 class="centered" data-reveal>Play with a tiny slice of SOAR.</h2>
+        <p class="centered demo-sub" data-reveal>
+          This is the whole idea, miniaturized: pick your widgets, drag them where you want
+          them, click into any number. The real product does exactly this — with your data.
+        </p>
+        <div
+          class="demo-frame"
+          data-reveal
+          data-soar-poi
+          data-soar-side="left"
+          data-soar-pose="cheer"
+          data-soar-say="Go on — drag a widget!"
+        >
+          <div class="demo-toolbar">
+            <span class="demo-label">Widgets</span>
+            <div class="demo-chips" id="demo-chips"></div>
+            <button class="demo-reset" id="demo-reset" type="button">Reset demo</button>
+          </div>
+          <div class="demo-band" id="demo-band"></div>
+          <div class="demo-panel" id="demo-panel"></div>
+          <div class="demo-hint">Drag cards to reorder · click a card to expand · toggle chips to add or remove</div>
         </div>
       </section>
 
@@ -198,7 +234,13 @@
     <footer class="site-foot">
       <div class="foot-inner">
         <span class="foot-brand">SO<svg class="word-a" viewBox="0 0 40 40" aria-hidden="true"><path d="M5 37 L20 5 L35 37" fill="none" stroke="currentColor" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="sr-only">A</span>R</span>
-        <span class="foot-note">© 2026 SOAR · soar-crm.com · <a href="mailto:hello@soar-crm.com">hello@soar-crm.com</a></span>
+        <nav class="foot-links" aria-label="Footer">
+          <a href="#product">Product</a>
+          <a href="#demo">Try it</a>
+          <a href="#features">Features</a>
+          <a href="mailto:hello@soar-crm.com">Contact</a>
+        </nav>
+        <span class="foot-note">© 2026 SOAR · Made to make you soar · <a href="mailto:hello@soar-crm.com">hello@soar-crm.com</a></span>
       </div>
     </footer>
 

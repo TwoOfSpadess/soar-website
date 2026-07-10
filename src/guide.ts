@@ -310,8 +310,24 @@ export class SoarGuide {
   }
 
   private say(text: string, duration = 2600) {
+    this.bubble.style.setProperty('--shiftX', '0px');
     this.bubble.textContent = text;
     this.bubble.classList.add('visible');
+    // Clamp the bubble inside the viewport; the tail counter-shifts so it
+    // keeps pointing at the guide even when the bubble slides over. Uses
+    // layout width (offsetWidth) because the pop-in transition makes
+    // getBoundingClientRect read too narrow mid-animation; the bubble's
+    // inverse scale cancels the root scale, so offsetWidth IS final width.
+    requestAnimationFrame(() => {
+      const width = this.bubble.offsetWidth;
+      const centerX = this.x + (BASE_W * this.scale) / 2;
+      let shift = 0;
+      const right = centerX + width / 2;
+      const left = centerX - width / 2;
+      if (right > window.innerWidth - 10) shift = window.innerWidth - 10 - right;
+      else if (left < 10) shift = 10 - left;
+      if (shift !== 0) this.bubble.style.setProperty('--shiftX', `${shift}px`);
+    });
     window.clearTimeout(this.bubbleTimer);
     this.bubbleTimer = window.setTimeout(() => this.hideBubble(), duration);
   }

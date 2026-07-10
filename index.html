@@ -138,9 +138,30 @@
             <div class="demo-chips" id="demo-chips"></div>
             <button class="demo-reset" id="demo-reset" type="button">Reset demo</button>
           </div>
-          <div class="demo-band" id="demo-band"></div>
-          <div class="demo-panel" id="demo-panel"></div>
-          <div class="demo-hint">Drag cards to reorder · click a card to expand · toggle chips to add or remove</div>
+          <div class="demo-window">
+            <div class="demo-rail" aria-hidden="true">
+              <svg viewBox="0 0 64 64" width="22" height="22">
+                <path d="M13 51 L32 11 L51 51" fill="none" stroke="#7a9c3a" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+              <span class="dr-item active">Dashboard</span>
+              <span class="dr-item">Tickets</span>
+              <span class="dr-item">Projects</span>
+              <span class="dr-item">Billing</span>
+            </div>
+            <div class="demo-main">
+              <div class="demo-head">
+                <div class="dh-title">
+                  <b>Dashboard</b>
+                  <span>Demo workspace — look, drag, expand</span>
+                </div>
+                <button id="demo-new" class="demo-new" type="button">+ New Ticket</button>
+              </div>
+              <div class="demo-band" id="demo-band"></div>
+              <div class="demo-panel" id="demo-panel"></div>
+            </div>
+          </div>
+          <div class="demo-hint">Click a widget to expand it, just like the real thing · drag by the grip to reorder · toggle chips to add or remove</div>
+          <div class="demo-toast" id="demo-toast" hidden></div>
         </div>
       </section>
 

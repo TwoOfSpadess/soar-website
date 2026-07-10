@@ -1,206 +1,282 @@
-/* A miniature, self-contained taste of the SOAR workspace: toggle widgets,
-   drag to reorder, click to expand. Static sample data — the pitch is the
-   interaction model, not the numbers. */
+/* Interactive mini-SOAR: a read-only slice of the real dashboard.
+   Widgets toggle, drag to reorder, and click-expand into flood views —
+   mirroring the product. Nothing here mutates anything real. */
 
-type Tone = 'red' | 'amber' | 'green' | 'navy';
+type Tone = 'red' | 'amber' | 'green' | 'navy' | 'gray';
 
-interface Row {
-  a: string;
-  b: string;
-  bTone: Tone;
-  c: string;
+interface Cell {
+  text: string;
+  tone?: Tone;
+  prio?: 'critical' | 'high' | 'medium' | 'low';
+  sub?: string;
+}
+
+interface ExpandedView {
+  headers: string[];
+  rows: Cell[][];
 }
 
 interface DemoWidget {
   id: string;
+  chip: string;
   label: string;
   value: string;
   sub: string;
   accent?: boolean;
   warn?: boolean;
+  kind: 'stat' | 'panel';
   title: string;
-  rows: Row[];
+  blurb: string;
+  expanded: ExpandedView;
 }
 
-const TICKET_ROWS: Row[] = [
-  { a: 'Backup job failing — Ironwood Mfg', b: 'Critical', bTone: 'red', c: 'overdue' },
-  { a: 'Email delivery delayed — Summit Financial', b: 'High', bTone: 'amber', c: 'due in 7h' },
-  { a: 'VPN drops for remote staff — Lakeside', b: 'High', bTone: 'amber', c: 'due in 1d' },
-  { a: 'Printer offline — Harborview Dental', b: 'Medium', bTone: 'navy', c: 'due in 4h' },
+const TICKET_ROWS: Cell[][] = [
+  [{ text: 'Critical', prio: 'critical' }, { text: 'Backup job failing on HV-SQL01', sub: 'Ironwood Manufacturing' }, { text: 'Escalated', tone: 'red' }, { text: 'overdue', tone: 'red' }],
+  [{ text: 'High', prio: 'high' }, { text: 'Email delivery delayed externally', sub: 'Summit Financial Partners' }, { text: 'In Progress', tone: 'navy' }, { text: 'in 7h' }],
+  [{ text: 'High', prio: 'high' }, { text: 'VPN drops for remote dispatchers', sub: 'Lakeside Logistics' }, { text: 'In Progress', tone: 'navy' }, { text: 'in 1d' }],
+  [{ text: 'Medium', prio: 'medium' }, { text: 'Printer offline — Operatory 2', sub: 'Harborview Dental Group' }, { text: 'New', tone: 'green' }, { text: 'in 4h' }],
+  [{ text: 'Medium', prio: 'medium' }, { text: 'Teams Rooms console offline', sub: 'Summit Financial Partners' }, { text: 'In Progress', tone: 'navy' }, { text: 'in 1d' }],
+  [{ text: 'Low', prio: 'low' }, { text: 'Q3 license reconciliation', sub: 'BrightPath Charter Schools' }, { text: 'New', tone: 'green' }, { text: 'in 2w' }],
 ];
 
 const WIDGETS: DemoWidget[] = [
   {
     id: 'open',
+    chip: 'Open Tickets',
     label: 'Open Tickets',
     value: '18',
     sub: '2 new today',
+    kind: 'stat',
     title: 'Open Tickets',
-    rows: TICKET_ROWS,
+    blurb: 'Every unresolved ticket across your clients, priority first.',
+    expanded: { headers: ['Priority', 'Ticket', 'Status', 'SLA'], rows: TICKET_ROWS },
   },
   {
     id: 'sla',
+    chip: 'SLA At Risk',
     label: 'SLA At Risk',
-    value: '2',
+    value: '3',
     sub: 'due today or overdue',
     warn: true,
+    kind: 'stat',
     title: 'SLA At Risk',
-    rows: [
-      { a: 'Backup job failing — Ironwood Mfg', b: 'Breached', bTone: 'red', c: '4h over' },
-      { a: 'UPS battery fault — Northgate', b: 'Due today', bTone: 'amber', c: '5pm' },
-    ],
+    blurb: 'Tickets due today or already past their SLA.',
+    expanded: { headers: ['Priority', 'Ticket', 'Status', 'SLA'], rows: TICKET_ROWS.slice(0, 3) },
   },
   {
     id: 'hours',
-    label: 'Hours This Week',
+    chip: 'Hours This Week',
+    label: 'Hours Logged This Week',
     value: '42h',
     sub: '87% billable',
-    title: 'Hours This Week',
-    rows: [
-      { a: 'Cole Bennett — AP install, warehouse', b: 'Billable', bTone: 'green', c: '6.0h' },
-      { a: 'Derek Okafor — Veeam troubleshooting', b: 'Billable', bTone: 'green', c: '3.5h' },
-      { a: 'Maya Torres — message trace, Summit', b: 'Billable', bTone: 'green', c: '1.5h' },
-    ],
+    kind: 'stat',
+    title: 'Hours Logged This Week',
+    blurb: 'Time captured since Monday, ready for billing.',
+    expanded: {
+      headers: ['Date', 'Resource', 'Work', 'Hours'],
+      rows: [
+        [{ text: 'Wed' }, { text: 'Derek Okafor' }, { text: 'Veeam VSS troubleshooting', sub: 'Ironwood Manufacturing' }, { text: '3.5h' }],
+        [{ text: 'Wed' }, { text: 'Cole Bennett' }, { text: 'Warehouse AP mounting', sub: 'Ironwood Manufacturing' }, { text: '6.0h' }],
+        [{ text: 'Tue' }, { text: 'Maya Torres' }, { text: 'Message trace analysis', sub: 'Summit Financial Partners' }, { text: '1.5h' }],
+        [{ text: 'Mon' }, { text: 'Priya Shah' }, { text: 'Migration wave 2 planning', sub: 'Summit Financial Partners' }, { text: '2.0h' }],
+      ],
+    },
   },
   {
     id: 'mrr',
-    label: 'Monthly Recurring',
+    chip: 'MRR',
+    label: 'Monthly Recurring Revenue',
     value: '$40.9k',
     sub: '7 active contracts',
     accent: true,
+    kind: 'stat',
     title: 'Monthly Recurring Revenue',
-    rows: [
-      { a: 'Ironwood Manufacturing', b: 'Platinum', bTone: 'navy', c: '$8,400/mo' },
-      { a: 'Lakeside Logistics', b: 'Gold', bTone: 'navy', c: '$7,200/mo' },
-      { a: 'Northgate Physicians', b: 'Gold', bTone: 'navy', c: '$6,750/mo' },
-    ],
+    blurb: 'Recurring revenue across every managed agreement.',
+    expanded: {
+      headers: ['Company', 'Agreement', 'Status', 'MRR'],
+      rows: [
+        [{ text: 'Ironwood Manufacturing' }, { text: 'Managed Services — Platinum' }, { text: 'Active', tone: 'green' }, { text: '$8,400' }],
+        [{ text: 'Lakeside Logistics' }, { text: 'Managed Services — Gold' }, { text: 'Active', tone: 'green' }, { text: '$7,200' }],
+        [{ text: 'Northgate Physicians' }, { text: 'Managed Services — Gold' }, { text: 'Active', tone: 'green' }, { text: '$6,750' }],
+        [{ text: 'Summit Financial' }, { text: 'Managed Services — Gold' }, { text: 'Renews Aug 30', tone: 'amber' }, { text: '$5,600' }],
+      ],
+    },
+  },
+  {
+    id: 'activity',
+    chip: 'Recent Activity',
+    label: 'Recent Ticket Activity',
+    value: '',
+    sub: '',
+    kind: 'panel',
+    title: 'Recent Ticket Activity',
+    blurb: 'The latest movement across open tickets.',
+    expanded: { headers: ['Priority', 'Ticket', 'Status', 'SLA'], rows: TICKET_ROWS },
   },
 ];
 
-const PANEL_ID = 'recent';
-const DEFAULT_ORDER = ['open', 'sla', 'hours', 'mrr'];
+const DEFAULT_ORDER = WIDGETS.map((w) => w.id);
 
-let order: string[] = [...DEFAULT_ORDER];
-let panelOn = true;
-let dragId: string | null = null;
+const cellHtml = (cell: Cell): string => {
+  if (cell.prio) return `<span class="demo-prio ${cell.prio}">${cell.text}</span>`;
+  if (cell.tone) return `<span class="demo-tone ${cell.tone}">${cell.text}</span>`;
+  if (cell.sub) return `<span class="demo-cell-main">${cell.text}</span><span class="demo-cell-sub">${cell.sub}</span>`;
+  return cell.text;
+};
 
-const byId = (id: string) => WIDGETS.find((w) => w.id === id)!;
+const tableHtml = (view: ExpandedView): string => `
+  <table>
+    <thead><tr>${view.headers.map((h) => `<th>${h}</th>`).join('')}</tr></thead>
+    <tbody>${view.rows
+      .map((row) => `<tr>${row.map((c) => `<td>${cellHtml(c)}</td>`).join('')}</tr>`)
+      .join('')}</tbody>
+  </table>`;
 
-function rowsTable(rows: Row[]): string {
-  return `<table>${rows
-    .map(
-      (r) =>
-        `<tr><td>${r.a}</td><td><span class="demo-tone ${r.bTone}">${r.b}</span></td><td style="text-align:right;font-weight:620">${r.c}</td></tr>`,
-    )
-    .join('')}</table>`;
-}
+export function initDemo(): void {
+  const chipsEl = document.getElementById('demo-chips');
+  const bandEl = document.getElementById('demo-band');
+  const panelEl = document.getElementById('demo-panel');
+  const frameEl = document.querySelector<HTMLElement>('.demo-frame');
+  const toastEl = document.getElementById('demo-toast');
+  const newBtn = document.getElementById('demo-new');
+  if (!chipsEl || !bandEl || !panelEl || !frameEl || !toastEl || !newBtn) return;
 
-export function initDemo() {
-  const chips = document.getElementById('demo-chips');
-  const band = document.getElementById('demo-band');
-  const panel = document.getElementById('demo-panel');
-  const frame = band?.closest('.demo-frame') as HTMLElement | null;
-  const reset = document.getElementById('demo-reset');
-  if (!chips || !band || !panel || !frame || !reset) return;
+  let order = [...DEFAULT_ORDER];
+  let dragId: string | null = null;
+  let toastTimer = 0;
+
+  const byId = (id: string): DemoWidget => WIDGETS.find((w) => w.id === id)!;
 
   const render = () => {
-    chips.innerHTML = [...WIDGETS.map((w) => ({ id: w.id, label: w.label })), { id: PANEL_ID, label: 'Recent Tickets' }]
-      .map(({ id, label }) => {
-        const active = id === PANEL_ID ? panelOn : order.includes(id);
-        return `<button type="button" class="demo-chip ${active ? 'active' : ''}" data-chip="${id}">${label}</button>`;
+    chipsEl.innerHTML = WIDGETS.map(
+      (w) => `<button type="button" class="demo-chip ${order.includes(w.id) ? 'active' : ''}" data-chip="${w.id}">${w.chip}</button>`,
+    ).join('');
+
+    const stats = order.filter((id) => byId(id).kind === 'stat');
+    bandEl.innerHTML = stats.length
+      ? stats
+          .map((id) => {
+            const w = byId(id);
+            return `<div class="demo-card ${w.accent ? 'accent' : ''} ${w.warn ? 'warn' : ''}" draggable="true" data-id="${w.id}">
+              <span class="dc-grip">⠿</span>
+              <b>${w.value}</b><span>${w.label}</span><small>${w.sub}</small>
+            </div>`;
+          })
+          .join('')
+      : '<div class="demo-empty">No widgets — tap a chip above to add some back.</div>';
+
+    const panels = order.filter((id) => byId(id).kind === 'panel');
+    panelEl.innerHTML = panels
+      .map((id) => {
+        const w = byId(id);
+        return `<div class="demo-panel-card" data-id="${w.id}">
+          <div class="panel-title">${w.title}<span class="panel-expand">expand</span></div>
+          ${tableHtml({ headers: w.expanded.headers, rows: w.expanded.rows.slice(0, 4) })}
+        </div>`;
       })
       .join('');
-
-    band.innerHTML =
-      order.length === 0
-        ? `<div class="demo-empty">No widgets — flip a chip above to add some back.</div>`
-        : order
-            .map((id) => {
-              const w = byId(id);
-              return `<div class="demo-card ${w.accent ? 'accent' : ''} ${w.warn ? 'warn' : ''}" draggable="true" data-id="${w.id}">
-                <span class="dc-grip">⠿</span><b>${w.value}</b><span>${w.label}</span><small>${w.sub}</small>
-              </div>`;
-            })
-            .join('');
-
-    panel.innerHTML = panelOn
-      ? `<div class="panel-title">Recent Tickets</div>${rowsTable(TICKET_ROWS)}`
-      : '';
   };
 
-  const expand = (w: DemoWidget) => {
+  const toast = (text: string) => {
+    toastEl.textContent = text;
+    toastEl.hidden = false;
+    toastEl.classList.add('show');
+    window.clearTimeout(toastTimer);
+    toastTimer = window.setTimeout(() => {
+      toastEl.classList.remove('show');
+      toastTimer = window.setTimeout(() => {
+        toastEl.hidden = true;
+      }, 250);
+    }, 2800);
+  };
+
+  const expand = (id: string) => {
+    const w = byId(id);
     const overlay = document.createElement('div');
     overlay.className = 'demo-overlay';
-    overlay.innerHTML = `<div class="demo-overlay-card">
-      <header><b>${w.title}</b><button type="button" class="do-close" aria-label="Close">&times;</button></header>
-      ${rowsTable(w.rows)}
-      <p class="do-note">In the full product this is your live data — and clicking a row takes you straight to it.</p>
-    </div>`;
+    overlay.innerHTML = `
+      <div class="demo-overlay-card">
+        <header>
+          <div><b>${w.title}</b><span class="do-blurb">${w.blurb}</span></div>
+          <button class="do-close" type="button" aria-label="Close">
+            <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg>
+          </button>
+        </header>
+        ${tableHtml(w.expanded)}
+        <p class="do-note">In the real SOAR, every row clicks through to the full record. <a href="mailto:hello@soar-crm.com?subject=SOAR%20early%20access">Get early access</a> to try it with your data.</p>
+      </div>`;
     overlay.addEventListener('click', (e) => {
       if (e.target === overlay || (e.target as HTMLElement).closest('.do-close')) overlay.remove();
     });
-    frame.appendChild(overlay);
+    frameEl.appendChild(overlay);
   };
 
-  chips.addEventListener('click', (e) => {
+  /* Delegated interactions */
+  chipsEl.addEventListener('click', (e) => {
     const chip = (e.target as HTMLElement).closest<HTMLElement>('[data-chip]');
     if (!chip) return;
     const id = chip.dataset.chip!;
-    if (id === PANEL_ID) panelOn = !panelOn;
-    else if (order.includes(id)) order = order.filter((x) => x !== id);
-    else order = [...order, id];
+    order = order.includes(id) ? order.filter((x) => x !== id) : [...order, id];
     render();
   });
 
-  reset.addEventListener('click', () => {
+  document.getElementById('demo-reset')?.addEventListener('click', () => {
     order = [...DEFAULT_ORDER];
-    panelOn = true;
     render();
   });
 
-  band.addEventListener('click', (e) => {
-    const card = (e.target as HTMLElement).closest<HTMLElement>('[data-id]');
-    if (card && !dragId) expand(byId(card.dataset.id!));
+  newBtn.addEventListener('click', () =>
+    toast('Demo mode — creating tickets is a real-SOAR perk. Grab early access!'),
+  );
+
+  bandEl.addEventListener('click', (e) => {
+    const card = (e.target as HTMLElement).closest<HTMLElement>('.demo-card');
+    if (card && !dragId) expand(card.dataset.id!);
   });
 
-  band.addEventListener('dragstart', (e) => {
-    const card = (e.target as HTMLElement).closest<HTMLElement>('[data-id]');
+  panelEl.addEventListener('click', (e) => {
+    const panel = (e.target as HTMLElement).closest<HTMLElement>('.demo-panel-card');
+    if (panel) expand(panel.dataset.id!);
+  });
+
+  bandEl.addEventListener('dragstart', (e) => {
+    const card = (e.target as HTMLElement).closest<HTMLElement>('.demo-card');
     if (!card) return;
     dragId = card.dataset.id!;
-    e.dataTransfer?.setData('text/plain', dragId);
+    e.dataTransfer!.setData('text/plain', dragId);
+    e.dataTransfer!.effectAllowed = 'move';
     card.classList.add('dragging');
   });
 
-  band.addEventListener('dragover', (e) => {
-    const card = (e.target as HTMLElement).closest<HTMLElement>('[data-id]');
+  bandEl.addEventListener('dragover', (e) => {
+    const card = (e.target as HTMLElement).closest<HTMLElement>('.demo-card');
     if (!card || !dragId || card.dataset.id === dragId) return;
     e.preventDefault();
-    const r = card.getBoundingClientRect();
-    const after = e.clientX > r.left + r.width / 2;
-    band.querySelectorAll('.drop-l, .drop-r').forEach((el) => el.classList.remove('drop-l', 'drop-r'));
-    card.classList.add(after ? 'drop-r' : 'drop-l');
+    const rect = card.getBoundingClientRect();
+    const after = e.clientX > rect.left + rect.width / 2;
+    card.classList.toggle('drop-r', after);
+    card.classList.toggle('drop-l', !after);
   });
 
-  band.addEventListener('drop', (e) => {
+  bandEl.addEventListener('dragleave', (e) => {
+    (e.target as HTMLElement).closest('.demo-card')?.classList.remove('drop-l', 'drop-r');
+  });
+
+  bandEl.addEventListener('drop', (e) => {
     e.preventDefault();
-    const card = (e.target as HTMLElement).closest<HTMLElement>('[data-id]');
-    if (!card || !dragId || card.dataset.id === dragId) return;
-    const r = card.getBoundingClientRect();
-    const after = e.clientX > r.left + r.width / 2;
+    const card = (e.target as HTMLElement).closest<HTMLElement>('.demo-card');
+    if (!card || !dragId) return;
+    const targetId = card.dataset.id!;
+    const after = card.classList.contains('drop-r');
     const without = order.filter((x) => x !== dragId);
-    const at = without.indexOf(card.dataset.id!) + (after ? 1 : 0);
+    const at = without.indexOf(targetId) + (after ? 1 : 0);
     order = [...without.slice(0, at), dragId, ...without.slice(at)];
     render();
   });
 
-  band.addEventListener('dragend', () => {
-    // Cleared next tick so the post-drag click doesn't open the overlay.
-    window.setTimeout(() => {
-      dragId = null;
-    }, 0);
-    band.querySelectorAll('.dragging, .drop-l, .drop-r').forEach((el) =>
-      el.classList.remove('dragging', 'drop-l', 'drop-r'),
-    );
+  bandEl.addEventListener('dragend', () => {
+    dragId = null;
+    render();
   });
 
   render();

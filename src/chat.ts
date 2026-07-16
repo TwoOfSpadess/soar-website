@@ -1,13 +1,27 @@
 import type { SoarGuide } from './guide';
 
-/* A scripted concierge: curated answers matched by keyword, no backend.
-   Bot answer strings may contain trusted HTML (links); user input is only
-   ever rendered via textContent. */
+/* The guide answers in one of two modes.
+
+   Live: soar-api answers with Claude, holding the conversation server-side.
+   Scripted: curated keyword-matched answers, no backend.
+
+   Scripted is the fallback for every failure, not just an old code path. If the
+   API is unset, unreachable, erroring, or slow to the point of throwing, the
+   visitor still gets an answer instead of a dead widget. It is also what runs
+   until the API has a public address.
+
+   Trust boundary: scripted answers are authored here and may carry HTML links.
+   A live reply is derived from whatever a stranger typed into the box, so it is
+   rendered as text and never as HTML. */
 
 interface Topic {
   keywords: string[];
   answer: string;
 }
+
+const API_BASE = (import.meta.env.VITE_SOAR_API ?? '').replace(/\/+$/, '');
+const INGEST_KEY = import.meta.env.VITE_SOAR_INGEST_KEY ?? '';
+const LIVE = Boolean(API_BASE && INGEST_KEY);
 
 const CONTACT_LINK = '<a href="mailto:hello@soar-crm.com">hello@soar-crm.com</a>';
 
@@ -99,6 +113,56 @@ function matchAnswer(query: string): string {
   return best ? best.answer : FALLBACK;
 }
 
+/** Stable per browser, so a returning visitor's chats can be tied together in
+    the CRM. Storage is blocked in some privacy modes; that is not fatal. */
+function visitorId(): string {
+  const KEY = 'soar-visitor';
+  try {
+    const existing = localStorage.getItem(KEY);
+    if (existing) return existing;
+    const fresh = crypto.randomUUID();
+    localStorage.setItem(KEY, fresh);
+    return fresh;
+  } catch {
+    return '';
+  }
+}
+
+let conversationId: string | null = null;
+/* Set when the server says this visitor is done. Holding it here means a capped
+   visitor stops generating requests at all, rather than being told to email us
+   once per message by a server that has to answer every time to say it. */
+let handoff: string | null = null;
+
+/** A live answer, or null to mean "fall back to the script". */
+async function liveReply(query: string): Promise<string | null> {
+  if (!LIVE) return null;
+  if (handoff) return handoff;
+  try {
+    const res = await fetch(`${API_BASE}/api/ingest/chat/reply`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({
+        key: INGEST_KEY,
+        message: query,
+        conversationId: conversationId ?? undefined,
+        visitorId: visitorId(),
+        pageUrl: location.href,
+      }),
+    });
+    if (!res.ok) return null;
+    const body: unknown = await res.json();
+    if (typeof body !== 'object' || body === null) return null;
+    const { ok, reply, conversationId: id, capped } = body as Record<string, unknown>;
+    if (ok !== true || typeof reply !== 'string' || !reply) return null;
+    if (typeof id === 'string') conversationId = id;
+    if (capped === true) handoff = reply;
+    return reply;
+  } catch {
+    return null;
+  }
+}
+
 const PANEL_HTML = `
   <header class="chat-head">
     <svg viewBox="0 0 64 64" width="20" height="20" aria-hidden="true">
@@ -106,7 +170,7 @@ const PANEL_HTML = `
     </svg>
     <div class="chat-title">
       <b>SOAR Guide</b>
-      <span>Scripted concierge &middot; instant-ish</span>
+      <span>${LIVE ? 'Ask me anything about SOAR' : 'Scripted concierge &middot; instant-ish'}</span>
     </div>
     <button class="chat-close" aria-label="Close chat" type="button">
       <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg>
@@ -148,22 +212,34 @@ export function initChat(guide: SoarGuide): ChatControls {
     return el;
   };
 
-  const botReply = (query: string) => {
+  const settle = (el: HTMLDivElement, content: string, asHtml: boolean) => {
+    el.classList.remove('typing');
+    if (asHtml) el.innerHTML = content;
+    else el.textContent = content;
+    msgs.scrollTop = msgs.scrollHeight;
+    guide.react();
+  };
+
+  const botReply = async (query: string) => {
     const typing = addMsg('bot', '', false);
     typing.classList.add('typing');
     typing.innerHTML = '<i></i><i></i><i></i>';
+
+    const live = await liveReply(query);
+    if (live !== null) {
+      // Text, not HTML: this string traces back to visitor input.
+      settle(typing, live, false);
+      return;
+    }
+    // Scripted answers get the staged delay, since without a round trip an
+    // instant reply reads as canned (which it is).
     const answer = matchAnswer(query);
-    window.setTimeout(() => {
-      typing.classList.remove('typing');
-      typing.innerHTML = answer;
-      msgs.scrollTop = msgs.scrollHeight;
-      guide.react();
-    }, 450 + Math.min(answer.length * 4, 700));
+    window.setTimeout(() => settle(typing, answer, true), 450 + Math.min(answer.length * 4, 700));
   };
 
   const ask = (query: string) => {
     addMsg('user', query, false);
-    botReply(query);
+    void botReply(query);
   };
 
   for (const chip of CHIPS) {

@@ -15,17 +15,17 @@ const TOPICS: Topic[] = [
   {
     keywords: ['what is', 'about', 'soar', 'product', 'crm', 'psa', 'tool'],
     answer:
-      'SOAR is one workspace for everything a service business runs on — service desk tickets, projects, time tracking, contracts, and billing — built around a dashboard you design yourself.',
+      'SOAR is one workspace for everything a service business runs on: service desk tickets, projects, time tracking, contracts, and billing, all built around a dashboard you design yourself.',
   },
   {
     keywords: ['customize', 'custom', 'widget', 'drag', 'layout', 'dashboard', 'personalize', 'views'],
     answer:
-      'Customization is the whole point. Every stat and panel is a widget — 27 of them across four departments so far. Pick the ones you want per view, drag them where you like, and click any number to expand the full story. The demo up the page is a mini version of exactly that.',
+      'Customization is the whole point. Every stat and panel is a widget, 27 of them across four departments so far. Pick the ones you want per view, drag them where you like, and click any number to expand the full story. The demo up the page is a mini version of exactly that.',
   },
   {
     keywords: ['price', 'pricing', 'cost', 'how much', 'subscription', 'pay'],
     answer:
-      `Pricing isn't public yet — we're in early access and shaping plans with the first teams on board. Reach out at ${CONTACT_LINK} and we'll talk specifics.`,
+      `Pricing isn't public yet. We're in early access and shaping plans with the first teams on board. Reach out at ${CONTACT_LINK} and we'll talk specifics.`,
   },
   {
     keywords: ['early access', 'access', 'sign up', 'signup', 'waitlist', 'join', 'get started', 'trial', 'try'],
@@ -55,7 +55,7 @@ const TOPICS: Topic[] = [
   {
     keywords: ['data', 'security', 'privacy', 'storage', 'secure', 'backup'],
     answer:
-      `Your workspace data stays yours — the early build is local-first on your machine. For security specifics as we grow into hosted options, email ${CONTACT_LINK}.`,
+      `Your workspace data stays yours. The early build is local-first on your machine. For security specifics as we grow into hosted options, email ${CONTACT_LINK}.`,
   },
   {
     keywords: ['who', 'team', 'company', 'behind', 'founder', 'made'],
@@ -64,7 +64,7 @@ const TOPICS: Topic[] = [
   },
   {
     keywords: ['hello', 'hi ', 'hey', 'yo ', 'sup'],
-    answer: 'Hey! Ask me anything about SOAR — or tap one of the suggestions below.',
+    answer: 'Hey! Ask me anything about SOAR, or tap one of the suggestions below.',
   },
   {
     keywords: ['thanks', 'thank you', 'ty', 'appreciate'],
@@ -72,10 +72,10 @@ const TOPICS: Topic[] = [
   },
 ];
 
-const FALLBACK = `Good question — that one's beyond my little arrow brain. The humans at ${CONTACT_LINK} will have a real answer for you.`;
+const FALLBACK = `Good question, that one's beyond my little arrow brain. The humans at ${CONTACT_LINK} will have a real answer for you.`;
 
 const GREETING =
-  'Hi! I’m the SOAR guide. Ask me about the product, customization, pricing, or early access — or pick a suggestion below.';
+  'Hi! I’m the SOAR guide. Ask me about the product, customization, pricing, or early access. Or pick a suggestion below.';
 
 const CHIPS: { label: string; query?: string; action?: 'resume' }[] = [
   { label: 'What is SOAR?', query: 'What is SOAR?' },

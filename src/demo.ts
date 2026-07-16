@@ -34,7 +34,7 @@ const TICKET_ROWS: Cell[][] = [
   [{ text: 'Critical', prio: 'critical' }, { text: 'Backup job failing on HV-SQL01', sub: 'Ironwood Manufacturing' }, { text: 'Escalated', tone: 'red' }, { text: 'overdue', tone: 'red' }],
   [{ text: 'High', prio: 'high' }, { text: 'Email delivery delayed externally', sub: 'Summit Financial Partners' }, { text: 'In Progress', tone: 'navy' }, { text: 'in 7h' }],
   [{ text: 'High', prio: 'high' }, { text: 'VPN drops for remote dispatchers', sub: 'Lakeside Logistics' }, { text: 'In Progress', tone: 'navy' }, { text: 'in 1d' }],
-  [{ text: 'Medium', prio: 'medium' }, { text: 'Printer offline — Operatory 2', sub: 'Harborview Dental Group' }, { text: 'New', tone: 'green' }, { text: 'in 4h' }],
+  [{ text: 'Medium', prio: 'medium' }, { text: 'Printer offline in Operatory 2', sub: 'Harborview Dental Group' }, { text: 'New', tone: 'green' }, { text: 'in 4h' }],
   [{ text: 'Medium', prio: 'medium' }, { text: 'Teams Rooms console offline', sub: 'Summit Financial Partners' }, { text: 'In Progress', tone: 'navy' }, { text: 'in 1d' }],
   [{ text: 'Low', prio: 'low' }, { text: 'Q3 license reconciliation', sub: 'BrightPath Charter Schools' }, { text: 'New', tone: 'green' }, { text: 'in 2w' }],
 ];
@@ -95,10 +95,10 @@ const WIDGETS: DemoWidget[] = [
     expanded: {
       headers: ['Company', 'Agreement', 'Status', 'MRR'],
       rows: [
-        [{ text: 'Ironwood Manufacturing' }, { text: 'Managed Services — Platinum' }, { text: 'Active', tone: 'green' }, { text: '$8,400' }],
-        [{ text: 'Lakeside Logistics' }, { text: 'Managed Services — Gold' }, { text: 'Active', tone: 'green' }, { text: '$7,200' }],
-        [{ text: 'Northgate Physicians' }, { text: 'Managed Services — Gold' }, { text: 'Active', tone: 'green' }, { text: '$6,750' }],
-        [{ text: 'Summit Financial' }, { text: 'Managed Services — Gold' }, { text: 'Renews Aug 30', tone: 'amber' }, { text: '$5,600' }],
+        [{ text: 'Ironwood Manufacturing' }, { text: 'Managed Services Platinum' }, { text: 'Active', tone: 'green' }, { text: '$8,400' }],
+        [{ text: 'Lakeside Logistics' }, { text: 'Managed Services Gold' }, { text: 'Active', tone: 'green' }, { text: '$7,200' }],
+        [{ text: 'Northgate Physicians' }, { text: 'Managed Services Gold' }, { text: 'Active', tone: 'green' }, { text: '$6,750' }],
+        [{ text: 'Summit Financial' }, { text: 'Managed Services Gold' }, { text: 'Renews Aug 30', tone: 'amber' }, { text: '$5,600' }],
       ],
     },
   },
@@ -163,7 +163,7 @@ export function initDemo(): void {
             </div>`;
           })
           .join('')
-      : '<div class="demo-empty">No widgets — tap a chip above to add some back.</div>';
+      : '<div class="demo-empty">No widgets yet. Tap a chip above to add some back.</div>';
 
     const panels = order.filter((id) => byId(id).kind === 'panel');
     panelEl.innerHTML = panels
@@ -226,7 +226,7 @@ export function initDemo(): void {
   });
 
   newBtn.addEventListener('click', () =>
-    toast('Demo mode — creating tickets is a real-SOAR perk. Grab early access!'),
+    toast('Demo mode only. Creating tickets is a real-SOAR perk. Grab early access!'),
   );
 
   bandEl.addEventListener('click', (e) => {

@@ -86,7 +86,7 @@ window.addEventListener(
     if (touredToBottom) {
       deepestScroll = Math.max(deepestScroll, window.scrollY);
       if (deepestScroll - window.scrollY > 220) {
-        guide.park("That's the tour! Give me a click if you have questions — happy to help.");
+        guide.park("That's the tour! Give me a click if you have questions, happy to help.");
       }
     }
   },

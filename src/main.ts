@@ -1,5 +1,6 @@
 import '@fontsource-variable/inter';
 import './styles.css';
+import { initAiBand } from './aiband';
 import { initChat } from './chat';
 import { initDemo } from './demo';
 import { SoarGuide } from './guide';
@@ -74,6 +75,9 @@ guide.enter();
 const chat = initChat(guide);
 guide.onParkedClick = () => chat.toggle();
 
+/* ---- Interactive AI workflow band ---- */
+initAiBand();
+
 // Tour complete = visitor reached the bottom, then headed back up.
 let touredToBottom = false;
 let deepestScroll = 0;
@@ -87,6 +91,7 @@ window.addEventListener(
       deepestScroll = Math.max(deepestScroll, window.scrollY);
       if (deepestScroll - window.scrollY > 220) {
         guide.park("That's the tour! Give me a click if you have questions, happy to help.");
+        chat.setDocked(true); // the parked arrow takes over as the chat button
       }
     }
   },
@@ -97,6 +102,7 @@ window.addEventListener('soar:resume', () => {
   touredToBottom = false;
   deepestScroll = 0;
   guide.unpark();
+  chat.setDocked(false);
   active = pickPoi(null);
   guide.setPoi(active);
 });

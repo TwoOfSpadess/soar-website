@@ -187,6 +187,8 @@ const PANEL_HTML = `
 
 export interface ChatControls {
   toggle: () => void;
+  /** The parked guide arrow takes over as the chat button; hide the FAB. */
+  setDocked: (docked: boolean) => void;
 }
 
 export function initChat(guide: SoarGuide): ChatControls {
@@ -268,9 +270,31 @@ export function initChat(guide: SoarGuide): ChatControls {
 
   panel.querySelector('.chat-close')!.addEventListener('click', () => setOpen(false));
 
+  /* Visitors who never scroll to the bottom still deserve a way in: a small
+     chat button lives in the corner from page load. Once the tour finishes
+     and the guide arrow parks in that corner, the arrow IS the chat button,
+     so the FAB steps aside. */
+  const fab = document.createElement('button');
+  fab.type = 'button';
+  fab.className = 'chat-fab';
+  fab.setAttribute('aria-label', 'Chat with the SOAR guide');
+  fab.innerHTML = `
+    <svg viewBox="0 0 64 64" width="22" height="22" aria-hidden="true">
+      <path d="M13 51 L32 11 L51 51" fill="none" stroke="currentColor" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+    <span>Chat</span>`;
+  document.body.appendChild(fab);
+
+  let docked = false;
+  const syncFab = () => {
+    fab.classList.toggle('hidden', docked || open);
+  };
+  fab.addEventListener('click', () => setOpen(true));
+
   const setOpen = (next: boolean) => {
     open = next;
     panel.classList.toggle('open', open);
+    syncFab();
     if (open) {
       if (!greeted) {
         greeted = true;
@@ -280,5 +304,11 @@ export function initChat(guide: SoarGuide): ChatControls {
     }
   };
 
-  return { toggle: () => setOpen(!open) };
+  return {
+    toggle: () => setOpen(!open),
+    setDocked: (next: boolean) => {
+      docked = next;
+      syncFab();
+    },
+  };
 }

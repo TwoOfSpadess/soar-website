@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="robots" content="noindex" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <title>Accept your invitation · SOAR</title>
+    <meta name="description" content="Join your team's workspace on SOAR." />
+  </head>
+  <body class="invite-body">
+    <main class="invite-shell">
+      <a class="invite-brand" href="/">SOAR</a>
+
+      <section class="invite-card" id="card" aria-live="polite">
+        <div class="invite-state" id="loading">
+          <p class="invite-muted">Checking your invitation…</p>
+        </div>
+      </section>
+
+      <p class="invite-foot">
+        Trouble signing up? Email <a href="mailto:hello@soar-crm.com">hello@soar-crm.com</a>.
+      </p>
+    </main>
+    <script type="module" src="/src/invite.ts"></script>
+  </body>
+</html>

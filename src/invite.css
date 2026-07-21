@@ -1,0 +1,173 @@
+/* Invite acceptance page. Self-contained: this is the first thing a new user
+   ever sees of SOAR, and it must render instantly with no marketing-site JS. */
+@import '@fontsource-variable/inter';
+
+:root {
+  --navy-700: #232a85;
+  --navy-800: #1b2065;
+  --navy-500: #3a44bd;
+  --green-600: #4a6318;
+  --page: #f6f7fb;
+  --card: #ffffff;
+  --border: #e4e7f0;
+  --text-1: #1b2140;
+  --text-2: #565e7e;
+  --text-3: #8c92ac;
+  --red-600: #b42318;
+  --radius: 14px;
+  --font: 'Inter Variable', 'Segoe UI', system-ui, sans-serif;
+}
+
+* { box-sizing: border-box; }
+
+.invite-body {
+  margin: 0;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 32px 20px;
+  font-family: var(--font);
+  color: var(--text-1);
+  background:
+    radial-gradient(1000px 520px at 50% -10%, #e9ebfa 0%, rgba(233, 235, 250, 0) 70%),
+    var(--page);
+}
+
+.invite-shell {
+  width: 100%;
+  max-width: 440px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 18px;
+}
+
+.invite-brand {
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: var(--navy-800);
+  text-decoration: none;
+}
+
+.invite-card {
+  width: 100%;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: 0 10px 34px rgba(16, 18, 58, 0.09);
+  padding: 30px 28px;
+}
+
+.invite-state { display: flex; flex-direction: column; gap: 14px; }
+
+.invite-title {
+  margin: 0;
+  font-size: 23px;
+  line-height: 1.28;
+  font-weight: 600;
+}
+
+.invite-muted {
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.6;
+  color: var(--text-2);
+}
+
+.invite-fineprint {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--text-3);
+}
+
+.invite-form { display: flex; flex-direction: column; gap: 14px; margin-top: 2px; }
+
+.invite-field { display: flex; flex-direction: column; gap: 5px; }
+
+.invite-field > span {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-3);
+}
+
+.invite-field small { font-size: 12px; color: var(--text-3); }
+
+.invite-field input {
+  width: 100%;
+  padding: 11px 13px;
+  font: inherit;
+  font-size: 15px;
+  color: var(--text-1);
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  transition: border-color 140ms ease, box-shadow 140ms ease;
+}
+
+.invite-field input:focus {
+  outline: none;
+  border-color: var(--navy-500);
+  box-shadow: 0 0 0 3px rgba(58, 68, 189, 0.15);
+}
+
+.invite-field input:disabled { background: #f4f5f9; color: var(--text-2); }
+
+.invite-btn {
+  display: inline-block;
+  width: 100%;
+  padding: 12px 18px;
+  font: inherit;
+  font-size: 15px;
+  font-weight: 600;
+  text-align: center;
+  text-decoration: none;
+  color: #fff;
+  background: var(--navy-700);
+  border: 1px solid var(--navy-700);
+  border-radius: 9px;
+  cursor: pointer;
+  transition: background 140ms ease, transform 140ms ease;
+}
+
+.invite-btn:hover:not(:disabled) { background: var(--navy-800); }
+.invite-btn:active:not(:disabled) { transform: translateY(1px); }
+.invite-btn:disabled { opacity: 0.6; cursor: default; }
+
+.invite-btn-ghost {
+  color: var(--navy-700);
+  background: transparent;
+  border-color: var(--border);
+}
+
+.invite-btn-ghost:hover:not(:disabled) { background: #f4f5f9; }
+
+.invite-check {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  color: #fff;
+  background: var(--green-600);
+}
+
+.invite-error {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--red-600);
+}
+
+.invite-foot { margin: 0; font-size: 13px; color: var(--text-3); }
+.invite-foot a { color: var(--navy-700); }
+
+@media (prefers-reduced-motion: reduce) {
+  .invite-btn { transition: none; }
+  .invite-btn:active:not(:disabled) { transform: none; }
+}
